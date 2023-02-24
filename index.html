@@ -4,14 +4,35 @@
         <meta charset="utf-8" name="viewport" content="width=device-width, initial-scale=1">
         <link rel="stylesheet" href="style.css">
         <script src="app.js" charset="utf-8"></script>
-        <title>Basic Tetris</title>
+        <title>Tetrolino</title>
     </head>
     <body>
-
         <h3>Score: <span id="score">0</span></h3>
-        <button id="start-button">Start/Pause</button>
+        <button id="start-pause-button" onclick="startOrPauseGame()">Start/Pause</button>
 
-        <div class="grid">
+        <div class="container">
+            <div class="grid">
+            </div>
+
+            <div class="minigrid">
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+            </div>
         </div>
+        
     </body>
 </html>
