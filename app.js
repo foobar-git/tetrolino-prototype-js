@@ -171,9 +171,10 @@ function gameTetrolino() {
             currentTetrolino.forEach(index => squares_grid[currentPosition + index].classList.add('solid'));
             selectRandomTetrolino();
             currentPosition = startingPosition;     // set the new tetrolino at the top
-            draw();
             displayNextTetrolino();
             addScore();
+            draw();
+            gameOver();
         }
     }
 
@@ -265,6 +266,14 @@ function gameTetrolino() {
         console.log("gamePaused: " + b);
         if (!b) timerId = setInterval(mainGameLoop, timer);
         else clearInterval(timerId);
+    }
+
+    // game over
+    function gameOver() {
+        if (currentTetrolino.some(index => squares_grid[currentPosition + index].classList.contains('solid'))) {
+            scoreDisplay.innerHTML = score + " - Game Over";
+            clearInterval(timerId);
+        }
     }
 
     ///////////////////////////////////////////////////////////////////////////////
