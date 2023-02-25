@@ -8,7 +8,7 @@ function gameTetrolino() {
 
     // Tetrolinoes
     function initTetrolinos(width) {
-        const l_tetrolino_inv = [
+        const j_tetrolino = [
             //[20, 01, 11, 21],
             [2 * width + 0, 0 * width + 1, 1 * width + 1, 2 * width + 1],
             //[10, 20, 21, 22],
@@ -26,7 +26,7 @@ function gameTetrolino() {
             [2 * width + 0, 2 * width + 1, 1 * width + 2, 2 * width + 2]
         ];
 
-        const z_tetrolino_inv = [
+        const s_tetrolino = [
             [2 * width + 0, 1 * width + 1, 2 * width + 1, 1 * width + 2],
             [0 * width + 0, 1 * width + 0, 1 * width + 1, 2 * width + 1],
             [2 * width + 0, 1 * width + 1, 2 * width + 1, 1 * width + 2],
@@ -61,7 +61,7 @@ function gameTetrolino() {
             [1 * width + 0, 1 * width + 1, 1 * width + 2, 1 * width + 3]
         ];
 
-        return [l_tetrolino, l_tetrolino_inv, z_tetrolino, z_tetrolino_inv, t_tetrolino, o_tetrolino, i_tetrolino];
+        return [l_tetrolino, j_tetrolino, z_tetrolino, s_tetrolino, t_tetrolino, o_tetrolino, i_tetrolino];
     }
 
     // set up the grid
@@ -75,6 +75,14 @@ function gameTetrolino() {
             let element = document.createElement('div');
             element.classList.add('solid');
             grid.appendChild(element);
+        }
+    }
+
+    // set up the preview grid (next tetrolino box)
+    function setUpPreviewGrid(n) {
+        for (let i = 0; i < n; i++) {
+            let element = document.createElement('div');
+            previewGrid.appendChild(element);
         }
     }
 
@@ -105,14 +113,14 @@ function gameTetrolino() {
     // draw the tetrolino
     function draw() {
         currentTetrolino.forEach(index => {
-            squaresGrid[currentPosition + index].classList.add('tetrolinoCSS');
+            squares_grid[currentPosition + index].classList.add('tetrolinoCSS');
         })
     }
 
     // undraw the tetrolino
     function undraw() {
         currentTetrolino.forEach(index => {
-            squaresGrid[currentPosition + index].classList.remove('tetrolinoCSS');
+            squares_grid[currentPosition + index].classList.remove('tetrolinoCSS');
         })
     }
 
@@ -124,20 +132,18 @@ function gameTetrolino() {
         //remove any trace of a tetromino form the entire grid
         squares_previewGrid.forEach(square => {
             square.classList.remove('tetrolinoCSS')
-            //square.style.backgroundColor = ''
         })
         let selectedPreviewTetrolino = previewTetrolinos[nextRandomTetrolino];
         let currentPreview = selectedPreviewTetrolino[nextRandomRotation];
         currentPreview.forEach( index => {
             squares_previewGrid[index_previewGrid + index].classList.add('tetrolinoCSS')
-            //displaySquares[displayIndex + index].style.backgroundColor = colors[nextRandom]
         })
     }
 
     // move tetrolino down
     function advanceTetrolinoDownward() {
         // enabling "last second change"
-        if (!currentTetrolino.some(index => squaresGrid[currentPosition + index + width_squareGrid].classList.contains('solid'))) {
+        if (!currentTetrolino.some(index => squares_grid[currentPosition + index + width_squareGrid].classList.contains('solid'))) {
             undraw();
             currentPosition += width_squareGrid;
             draw();
@@ -161,12 +167,31 @@ function gameTetrolino() {
 
     // solidify the tetrolino into place
     function solidify() {
-        if (currentTetrolino.some(index => squaresGrid[currentPosition + index + width_squareGrid].classList.contains('solid'))) {
-            currentTetrolino.forEach(index => squaresGrid[currentPosition + index].classList.add('solid'));
+        if (currentTetrolino.some(index => squares_grid[currentPosition + index + width_squareGrid].classList.contains('solid'))) {
+            currentTetrolino.forEach(index => squares_grid[currentPosition + index].classList.add('solid'));
             selectRandomTetrolino();
             currentPosition = startingPosition;     // set the new tetrolino at the top
             draw();
             displayNextTetrolino();
+            addScore();
+        }
+    }
+
+    // add score
+    function addScore() {
+        for (let i = 0; i < (width_mainWindow - 1); i += width_squareGrid) {
+            const row = [i+0, i+1, i+2, i+3, i+4, i+5, i+6, i+7, i+8, i+9];
+            if (row.every(index => squares_grid[index].classList.contains('solid'))) {
+                score += 10;
+                scoreDisplay.innerHTML = score;
+                row.forEach(index => {
+                    squares_grid[index].classList.remove('solid');
+                    squares_grid[index].classList.remove('tetrolinoCSS');
+                })
+                const squaresRemoved = squares_grid.splice(i, width_squareGrid);
+                squares_grid = squaresRemoved.concat(squares_grid);
+                squares_grid.forEach(block => grid.appendChild(block));
+            }
         }
     }
 
@@ -193,7 +218,7 @@ function gameTetrolino() {
         if (!isAtLeftEdge) {
             currentPosition -= 1;
         }
-        if (currentTetrolino.some(index => squaresGrid[currentPosition + index].classList.contains('solid'))) {
+        if (currentTetrolino.some(index => squares_grid[currentPosition + index].classList.contains('solid'))) {
             currentPosition += 1;
         }
         draw();
@@ -206,7 +231,7 @@ function gameTetrolino() {
         if (!isAtRightEdge) {
             currentPosition += 1;
         }
-        if (currentTetrolino.some(index => squaresGrid[currentPosition + index].classList.contains('solid'))) {
+        if (currentTetrolino.some(index => squares_grid[currentPosition + index].classList.contains('solid'))) {
             currentPosition -= 1;
         }
         draw();
@@ -236,18 +261,14 @@ function gameTetrolino() {
         drawUI();
     }
 
-    function pauseGame(b, t) {
-        if (b) clearInterval();
-        else setInterval(mainGameLoop, t);
+    function pauseGame(b) {
+        console.log("gamePaused: " + b);
+        if (!b) timerId = setInterval(mainGameLoop, timer);
+        else clearInterval(timerId);
     }
 
-    /*function startOrPauseGame() {
-        gamePaused = !gamePaused;
-        pauseGame(gamePaused, timer);
-    }*/
-
     ///////////////////////////////////////////////////////////////////////////////
-    // INITIALIZING VARIABLES
+    // INITIALIZING VARIABLES AND FUNCTIONS
 
     let tetrolinoes;
     let previewTetrolinos;
@@ -260,37 +281,42 @@ function gameTetrolino() {
     let nextRandomRotation;
     let currentRotation;
     let currentTetrolino;
-    let gamePaused;
+    let timerId;
+    let timer = 500;                // set time interval (1000 = 1 second)
+    let score = 0;
+    let gamePaused = true;
     const width_squareGrid = 10;
+    const width_mainWindow = 200;
     const width_squarePreviewGrid = 4;
+    const width_previewWindow = 16;
 
     // init grid
     const grid = document.querySelector('.grid');
-    setUpGrid(200);
-    const squaresGrid = Array.from(document.querySelectorAll('.grid div'));
+    setUpGrid(width_mainWindow);
+    let squares_grid = Array.from(document.querySelectorAll('.grid div'));
     tetrolinoes = initTetrolinos(width_squareGrid);
     previewTetrolinos = initTetrolinos(width_squarePreviewGrid);
 
     // init ui
-    const squares_previewGrid = document.querySelectorAll('.minigrid div')
+    const previewGrid = document.querySelector('.preview-grid');
+    setUpPreviewGrid(width_previewWindow);
+    const squares_previewGrid = document.querySelectorAll('.preview-grid div')
     const index_previewGrid = 0
     const scoreDisplay = document.querySelector('#score');
     const startPauseButton = document.querySelector('#start-pause-button');
 
     // adding listeners
     document.addEventListener('keydown', getUserInput)
-
-    // set starting position
-    startingPosition = 4;
+    startPauseButton.addEventListener('click', () => {
+        gamePaused = !gamePaused;
+        pauseGame(gamePaused);
+    });
+    
+    startingPosition = 4;   // set tetrolino starting position
     currentPosition = startingPosition;
     nextRandomTetrolino = Math.floor(Math.random() * tetrolinoes.length);
     nextRandomRotation = 0;
     selectRandomTetrolino();
+    draw();
     displayNextTetrolino();
-
-    gamePaused = false;
-    // set time interval (1000 = 1 second)
-    let timer = 500;
-    // run game loop at startup
-    pauseGame(false, timer);
 }
